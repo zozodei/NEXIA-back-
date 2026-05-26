@@ -10,18 +10,19 @@ export default class InstitucionRepository {
             const result = await pool.query(`
                 SELECT 
                     id,
-                    nombre,
-                    direccion,
-                    telefono,
-                    email
+                    nombre
                 FROM institucion
                 ORDER BY nombre
             `);
 
             return result.rows;
         } catch (error) {
-            console.error(error);
-            return null;
+            console.error("ERROR SQL EN GET ALL INSTITUCION:");
+            console.error("MENSAJE:", error.message);
+            console.error("DETALLE:", error.detail);
+            console.error("CODIGO:", error.code);
+
+            throw error;
         }
     }
 
@@ -30,20 +31,19 @@ export default class InstitucionRepository {
             const result = await pool.query(`
                 SELECT 
                     id,
-                    nombre,
-                    direccion,
-                    telefono,
-                    email
+                    nombre
                 FROM institucion
                 WHERE id = $1
             `, [id]);
 
             return result.rows[0] || null;
         } catch (error) {
-            console.error(error);
-            return null;
+            console.error("ERROR SQL EN GET BY ID INSTITUCION:");
+            console.error("MENSAJE:", error.message);
+            console.error("DETALLE:", error.detail);
+            console.error("CODIGO:", error.code);
+
+            throw error;
         }
     }
 }
-
-//habla con la BD, por eso aca estan las consultas

@@ -8,12 +8,16 @@ router.get('', async (req, res) => {
     try {
         const data = await svc.getAllAsync();
 
-        data != null
-            ? res.status(200).json(data)
-            : res.status(500).send('Error interno.');
+        return res.status(200).json(data);
     } catch (e) {
         console.error("Error en GET /institucion:", e.message);
-        res.status(500).send(`Error: ${e.message}`);
+
+        return res.status(500).json({
+            message: "Error interno en institución.",
+            error: e.message,
+            detail: e.detail || null,
+            code: e.code || null
+        });
     }
 });
 
@@ -23,12 +27,20 @@ router.get('/:id', async (req, res) => {
 
         const data = await svc.getByIdAsync(id);
 
-        data
-            ? res.status(200).json(data)
-            : res.status(404).send('Institución no encontrada.');
+        if (!data) {
+            return res.status(404).send('Institución no encontrada.');
+        }
+
+        return res.status(200).json(data);
     } catch (e) {
         console.error("Error en GET /institucion/:id:", e.message);
-        res.status(500).send(`Error: ${e.message}`);
+
+        return res.status(500).json({
+            message: "Error interno en institución.",
+            error: e.message,
+            detail: e.detail || null,
+            code: e.code || null
+        });
     }
 });
 
