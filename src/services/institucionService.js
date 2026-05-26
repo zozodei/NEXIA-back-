@@ -1,17 +1,18 @@
-import institucionRepository from "../repositories/institucionRepository.js"
+import InstitucionRepository from "../repositories/institucionRepository.js";
 
-export default class institucionService{
-	constructor(){
-	   console.log('Estoy en: institucionService.constructor()');
-		this.repo = new institucionRepository();
-	}
+export default class InstitucionService {
+    constructor() {
+        console.log('Estoy en: InstitucionService.constructor()');
+        this.repo = new InstitucionRepository();
+    }
 
-	getAllAsync = async() => await this.repo.getAllAsync();
+    getAllAsync = async () => {
+        return await this.repo.getAllAsync();
+    }
 
-	getByIdAsync = async (id) => await this.repo.getByIdAsync(id);
-
-	createAsync = async (payload) => await this.repo.createAsync(payload);
-
-	updateAsync = async (id, payload) => await this.repo.updateAsync(id, payload);
+    getByIdAsync = async (id) => {
+        return await this.repo.getByIdAsync(id);
+    }
 }
 
+//entre el controller y el repositorie

@@ -1,49 +1,66 @@
 import { Router } from 'express';
-import alumnoService from './../services/alumnoService.js';
+import AlumnoService from './../services/alumnoService.js';
 
-const router = Router (); 
-const svc = new alumnoService();
-
-router.get('', async (req, res) => {
-    try {
-        const data = await svc.getAllAsync();
-        data != null ? res.status(200).json(data) : res.status(500).send('Error interno.');
-    } catch (e) { 
-        console.error("Error en GET /alumno:", e.message);
-        res.status(500).send(`Error: ${e.message}`); 
-    }
-});
+const router = Router();
+const svc = new AlumnoService();
 
 router.get('/:id', async (req, res) => {
     try {
         const id = req.params.id;
+
         const data = await svc.getByIdAsync(id);
-        data ? res.status(200).json(data) : res.status(404).send('No encontrado.');
+
+        data
+            ? res.status(200).json(data)
+            : res.status(404).send('Alumno no encontrado.');
     } catch (e) {
         console.error("Error en GET /alumno/:id:", e.message);
         res.status(500).send(`Error: ${e.message}`);
     }
 });
 
-router.post('', async (req, res) => {
+router.get('/:id/materias', async (req, res) => {
     try {
-        const payload = req.body;
-        const created = await svc.createAsync(payload);
-        created ? res.status(201).json(created) : res.status(500).send('Error al crear.');
+        const alumnoId = req.params.id;
+
+        const data = await svc.getMateriasAsync(alumnoId);
+
+        data != null
+            ? res.status(200).json(data)
+            : res.status(500).send('Error interno.');
     } catch (e) {
-        console.error("Error en POST /alumno:", e.message);
+        console.error("Error en GET /alumno/:id/materias:", e.message);
         res.status(500).send(`Error: ${e.message}`);
     }
 });
 
-router.put('/:id', async (req, res) => {
+router.get('/:id/materias-con-contenidos', async (req, res) => {
     try {
-        const id = req.params.id;
-        const payload = req.body;
-        const updated = await svc.updateAsync(id, payload);
-        updated ? res.status(200).json(updated) : res.status(404).send('No encontrado o no se actualizó.');
+        const alumnoId = req.params.id;
+
+        const data = await svc.getMateriasConContenidosAsync(alumnoId);
+
+        data != null
+            ? res.status(200).json(data)
+            : res.status(500).send('Error interno.');
     } catch (e) {
-        console.error("Error en PUT /alumno/:id:", e.message);
+        console.error("Error en GET /alumno/:id/materias-con-contenidos:", e.message);
+        res.status(500).send(`Error: ${e.message}`);
+    }
+});
+
+router.get('/:id/contenidos', async (req, res) => {
+    try {
+        const alumnoId = req.params.id;
+        const materiaId = req.query.materiaId || null;
+
+        const data = await svc.getContenidosAsync(alumnoId, materiaId);
+
+        data != null
+            ? res.status(200).json(data)
+            : res.status(500).send('Error interno.');
+    } catch (e) {
+        console.error("Error en GET /alumno/:id/contenidos:", e.message);
         res.status(500).send(`Error: ${e.message}`);
     }
 });

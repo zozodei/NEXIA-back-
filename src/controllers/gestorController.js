@@ -1,52 +1,75 @@
 import { Router } from 'express';
-import gestorService from './../services/gestorService.js';
+import GestorService from './../services/gestorService.js';
 
 const router = Router();
-const svc = new gestorService();
-
-router.get('', async (req, res) => {
-	try {
-		const data = await svc.getAllAsync();
-		data != null ? res.status(200).json(data) : res.status(500).send('Error interno.');
-	} catch (e) {
-		console.error("Error en GET /gestor:", e.message);
-		res.status(500).send(`Error: ${e.message}`);
-	}
-});
-
-router.get('/:id', async (req, res) => {
-	try {
-		const id = req.params.id;
-		const data = await svc.getByIdAsync(id);
-		data ? res.status(200).json(data) : res.status(404).send('No encontrado.');
-	} catch (e) {
-		console.error("Error en GET /gestor/:id:", e.message);
-		res.status(500).send(`Error: ${e.message}`);
-	}
-});
+const svc = new GestorService();
 
 router.post('', async (req, res) => {
-	try {
-		const payload = req.body;
-		const created = await svc.createAsync(payload);
-		created ? res.status(201).json(created) : res.status(500).send('Error al crear.');
-	} catch (e) {
-		console.error("Error en POST /gestor:", e.message);
-		res.status(500).send(`Error: ${e.message}`);
-	}
+    try {
+        const created = await svc.crearGestorAsync(req.body);
+
+        created
+            ? res.status(201).json(created)
+            : res.status(500).send('Error al crear gestor.');
+    } catch (e) {
+        console.error("Error en POST /gestor:", e.message);
+        res.status(500).send(`Error: ${e.message}`);
+    }
 });
 
-router.put('/:id', async (req, res) => {
-	try {
-		const id = req.params.id;
-		const payload = req.body;
-		const updated = await svc.updateAsync(id, payload);
-		updated ? res.status(200).json(updated) : res.status(404).send('No encontrado o no se actualizó.');
-	} catch (e) {
-		console.error("Error en PUT /gestor/:id:", e.message);
-		res.status(500).send(`Error: ${e.message}`);
-	}
+router.post('/alumnos', async (req, res) => {
+    try {
+        const created = await svc.crearAlumnoAsync(req.body);
+
+        created
+            ? res.status(201).json(created)
+            : res.status(500).send('Error al crear alumno.');
+    } catch (e) {
+        console.error("Error en POST /gestor/alumnos:", e.message);
+        res.status(500).send(`Error: ${e.message}`);
+    }
+});
+
+router.post('/profesores', async (req, res) => {
+    try {
+        const created = await svc.crearProfesorAsync(req.body);
+
+        created
+            ? res.status(201).json(created)
+            : res.status(500).send('Error al crear profesor.');
+    } catch (e) {
+        console.error("Error en POST /gestor/profesores:", e.message);
+        res.status(500).send(`Error: ${e.message}`);
+    }
+});
+
+router.post('/alumnos/:alumnoId/curso', async (req, res) => {
+    try {
+        const alumnoId = req.params.alumnoId;
+        const { curso_id } = req.body;
+
+        const updated = await svc.asignarAlumnoACursoAsync(alumnoId, curso_id);
+
+        updated
+            ? res.status(200).json(updated)
+            : res.status(404).send('Alumno no encontrado.');
+    } catch (e) {
+        console.error("Error en POST /gestor/alumnos/:alumnoId/curso:", e.message);
+        res.status(500).send(`Error: ${e.message}`);
+    }
+});
+
+router.post('/profesores/asignar-materia', async (req, res) => {
+    try {
+        const created = await svc.asignarProfesorAMateriaAsync(req.body);
+
+        created
+            ? res.status(201).json(created)
+            : res.status(500).send('Error al asignar profesor a materia.');
+    } catch (e) {
+        console.error("Error en POST /gestor/profesores/asignar-materia:", e.message);
+        res.status(500).send(`Error: ${e.message}`);
+    }
 });
 
 export default router;
-

@@ -1,18 +1,24 @@
-import alumnoRepository from "../repositories/alumnoRepository.js"
+import AlumnoRepository from "../repositories/alumnoRepository.js";
 
-export default class alumnoService{
-    constructor(){
-       console.log('Estoy en: alumnoService.constructor()');
-        this.repo = new alumnoRepository();
-    }    
-    getAllAsync = async() => await this.repo.getAllAsync();
+export default class AlumnoService {
+    constructor() {
+        console.log('Estoy en: AlumnoService.constructor()');
+        this.repo = new AlumnoRepository();
+    }
 
-    getByIdAsync = async (id) => await this.repo.getByIdAsync(id);
+    getByIdAsync = async (id) => {
+        return await this.repo.getByIdAsync(id);
+    }
 
-    createAsync = async (payload) => await this.repo.createAsync(payload);
+    getMateriasAsync = async (alumnoId) => {
+        return await this.repo.getMateriasAsync(alumnoId);
+    }
 
-    updateAsync = async (id, payload) => await this.repo.updateAsync(id, payload);
+    getMateriasConContenidosAsync = async (alumnoId) => {
+        return await this.repo.getMateriasConContenidosAsync(alumnoId);
+    }
+
+    getContenidosAsync = async (alumnoId, materiaId) => {
+        return await this.repo.getContenidosAsync(alumnoId, materiaId);
+    }
 }
-
-
-
