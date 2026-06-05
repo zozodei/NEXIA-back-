@@ -31,4 +31,8 @@ export default class ContenidoService {
       contenidos
     };
   };
+
+  getByIdAsync = async (contenidoId) => {
+    return await this.repo.getByIdAsync(contenidoId);
+  };
 }

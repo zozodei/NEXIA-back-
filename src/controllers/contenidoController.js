@@ -70,4 +70,19 @@ router.post('/', async (req, res) => {
   }
 });
 
+
+router.get('/contenido/:contenidoId', async (req, res) => {
+  try {
+    const data = await service.getByIdAsync(req.params.contenidoId);
+    
+    if (!data) {
+      return notFound(res, 'El contenido no existe');
+    }
+    
+    return ok(res, data, 'Contenido obtenido correctamente');
+  } catch (error) {
+    return serverError(res, error);
+  }
+});
+
 export default router;
