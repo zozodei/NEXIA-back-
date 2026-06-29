@@ -1,11 +1,14 @@
 import { Router } from 'express';
 import ProfesorService from '../services/profesorService.js';
-import { ok, notFound, serverError } from '../helpers/responseHelper.js';
+import { ok, notFound, forbidden, serverError } from '../helpers/responseHelper.js';
+import { verifyToken } from '../middleware/authMiddleware.js';
+import { requireRoles } from '../middleware/rolesMiddleware.js';
 
 const router = Router();
 const service = new ProfesorService();
 
-router.get('/', async (req, res) => {
+// Solo GESTOR y DIRECTIVO pueden listar todos los profesores
+router.get('/', verifyToken, requireRoles('GESTOR', 'DIRECTIVO'), async (req, res) => {
   try {
     const data = await service.getAllAsync(req.query.institucion_id);
     return ok(res, data);
@@ -14,8 +17,19 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.get('/:id', async (req, res) => {
+// GESTOR y DIRECTIVO pueden ver cualquier profesor; PROFESOR solo puede verse a sí mismo
+router.get('/:id', verifyToken, async (req, res) => {
   try {
+    const { rol, profesor_id } = req.user;
+
+    if (rol === 'PROFESOR' && String(profesor_id) !== req.params.id) {
+      return forbidden(res, 'Solo podés ver tu propio perfil');
+    }
+
+    if (!['GESTOR', 'DIRECTIVO', 'PROFESOR'].includes(rol)) {
+      return forbidden(res, 'No tenés permiso para realizar esta acción');
+    }
+
     const data = await service.getByIdAsync(req.params.id);
 
     if (!data) {
@@ -28,8 +42,19 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.get('/:id/materias', async (req, res) => {
+// GESTOR, DIRECTIVO, o el propio PROFESOR
+router.get('/:id/materias', verifyToken, async (req, res) => {
   try {
+    const { rol, profesor_id } = req.user;
+
+    if (rol === 'PROFESOR' && String(profesor_id) !== req.params.id) {
+      return forbidden(res, 'Solo podés ver tus propias materias');
+    }
+
+    if (!['GESTOR', 'DIRECTIVO', 'PROFESOR'].includes(rol)) {
+      return forbidden(res, 'No tenés permiso para realizar esta acción');
+    }
+
     const data = await service.getMateriasAsync(req.params.id);
     return ok(res, data);
   } catch (error) {

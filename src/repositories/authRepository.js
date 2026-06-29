@@ -1,7 +1,7 @@
 import pool from '../database/db.js';
 
 export default class AuthRepository {
-  loginUsuarioAsync = async ({ institucion_id, dni, password }) => {
+  loginUsuarioAsync = async ({ institucion_id, dni }) => {
     const result = await pool.query(`
       SELECT
         u.id AS usuario_id,
@@ -13,6 +13,7 @@ export default class AuthRepository {
         u.dni,
         UPPER(u.rol) AS rol,
         u.activo,
+        u.password,
 
         a.id AS alumno_id,
         a.curso_id,
@@ -34,19 +35,14 @@ export default class AuthRepository {
 
       WHERE u.institucion_id = $1
         AND u.dni = $2
-        AND u.password = $3
         AND u.activo = true
       LIMIT 1
-    `, [
-      institucion_id,
-      String(dni),
-      password
-    ]);
+    `, [institucion_id, String(dni)]);
 
     return result.rows[0] || null;
   };
 
-  loginGestorAsync = async ({ institucion_id, dni, password }) => {
+  loginGestorAsync = async ({ institucion_id, dni }) => {
     const result = await pool.query(`
       SELECT
         NULL::bigint AS usuario_id,
@@ -59,6 +55,7 @@ export default class AuthRepository {
         g.dni,
         'GESTOR' AS rol,
         true AS activo,
+        g.password,
 
         NULL::bigint AS alumno_id,
         NULL::bigint AS curso_id,
@@ -76,18 +73,13 @@ export default class AuthRepository {
 
       WHERE i.id = $1
         AND g.dni = $2
-        AND g.password = $3
       LIMIT 1
-    `, [
-      institucion_id,
-      String(dni),
-      password
-    ]);
+    `, [institucion_id, String(dni)]);
 
     return result.rows[0] || null;
   };
 
-  loginDirectorAsync = async ({ institucion_id, dni, password }) => {
+  loginDirectorAsync = async ({ institucion_id, dni }) => {
     const result = await pool.query(`
       SELECT
         NULL::bigint AS usuario_id,
@@ -100,6 +92,7 @@ export default class AuthRepository {
         d.dni::varchar AS dni,
         'DIRECTIVO' AS rol,
         true AS activo,
+        d.password,
 
         NULL::bigint AS alumno_id,
         NULL::bigint AS curso_id,
@@ -117,13 +110,8 @@ export default class AuthRepository {
 
       WHERE i.id = $1
         AND d.dni = $2
-        AND d.password = $3
       LIMIT 1
-    `, [
-      institucion_id,
-      Number(dni),
-      password
-    ]);
+    `, [institucion_id, Number(dni)]);
 
     return result.rows[0] || null;
   };

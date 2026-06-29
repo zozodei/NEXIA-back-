@@ -5,14 +5,18 @@ import {
   created,
   badRequest,
   notFound,
+  forbidden,
   serverError
 } from '../helpers/responseHelper.js';
 import { missingFields } from '../helpers/validationHelper.js';
+import { verifyToken } from '../middleware/authMiddleware.js';
+import { requireRoles } from '../middleware/rolesMiddleware.js';
 
 const router = Router();
 const service = new ContenidoService();
 
-router.get('/', async (req, res) => {
+// Vista admin — solo GESTOR y DIRECTIVO
+router.get('/', verifyToken, requireRoles('GESTOR', 'DIRECTIVO'), async (req, res) => {
   try {
     const data = await service.getAllAsync();
     return ok(res, data);
@@ -21,8 +25,19 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.get('/profesor/:profesorId', async (req, res) => {
+// GESTOR, DIRECTIVO, o el propio PROFESOR
+router.get('/profesor/:profesorId', verifyToken, async (req, res) => {
   try {
+    const { rol, profesor_id } = req.user;
+
+    if (rol === 'PROFESOR' && String(profesor_id) !== req.params.profesorId) {
+      return forbidden(res, 'Solo podés ver tus propios contenidos');
+    }
+
+    if (!['GESTOR', 'DIRECTIVO', 'PROFESOR'].includes(rol)) {
+      return forbidden(res, 'No tenés permiso para realizar esta acción');
+    }
+
     const data = await service.getByProfesorAsync(req.params.profesorId);
     return ok(res, data);
   } catch (error) {
@@ -30,7 +45,8 @@ router.get('/profesor/:profesorId', async (req, res) => {
   }
 });
 
-router.get('/profe-curso-materia/:profeCursoMateriaId', async (req, res) => {
+// Cualquier usuario autenticado puede ver contenidos de una materia
+router.get('/profe-curso-materia/:profeCursoMateriaId', verifyToken, async (req, res) => {
   try {
     const data = await service.getByProfeCursoMateriaAsync(
       req.params.profeCursoMateriaId
@@ -46,7 +62,8 @@ router.get('/profe-curso-materia/:profeCursoMateriaId', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+// Solo el PROFESOR puede subir contenido
+router.post('/', verifyToken, requireRoles('PROFESOR'), async (req, res) => {
   try {
     const faltantes = missingFields(req.body, [
       'profe_curso_materia_id',
@@ -70,15 +87,15 @@ router.post('/', async (req, res) => {
   }
 });
 
-
-router.get('/contenido/:contenidoId', async (req, res) => {
+// Cualquier usuario autenticado puede ver un contenido por ID
+router.get('/contenido/:contenidoId', verifyToken, async (req, res) => {
   try {
     const data = await service.getByIdAsync(req.params.contenidoId);
-    
+
     if (!data) {
       return notFound(res, 'El contenido no existe');
     }
-    
+
     return ok(res, data, 'Contenido obtenido correctamente');
   } catch (error) {
     return serverError(res, error);

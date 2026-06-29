@@ -8,11 +8,14 @@ import {
   serverError
 } from '../helpers/responseHelper.js';
 import { missingFields } from '../helpers/validationHelper.js';
+import { verifyToken } from '../middleware/authMiddleware.js';
+import { requireRoles } from '../middleware/rolesMiddleware.js';
 
 const router = Router();
 const service = new TipoContenidoService();
 
-router.get('/', async (req, res) => {
+// Cualquier usuario autenticado puede ver los tipos de contenido
+router.get('/', verifyToken, async (req, res) => {
   try {
     const data = await service.getAllAsync();
     return ok(res, data);
@@ -21,7 +24,8 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+// Solo el GESTOR puede crear tipos de contenido
+router.post('/', verifyToken, requireRoles('GESTOR'), async (req, res) => {
   try {
     const faltantes = missingFields(req.body, ['nombre']);
 

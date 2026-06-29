@@ -9,6 +9,8 @@ import {
   serverError
 } from '../helpers/responseHelper.js';
 import { missingFields } from '../helpers/validationHelper.js';
+import { verifyToken } from '../middleware/authMiddleware.js';
+import { requireRoles } from '../middleware/rolesMiddleware.js';
 
 const router = Router();
 const service = new GestorService();
@@ -25,6 +27,7 @@ const handlePostgresError = (res, error) => {
   return serverError(res, error);
 };
 
+// Ruta de bootstrap — pública para crear el primer gestor
 router.post('/', async (req, res) => {
   try {
     const faltantes = missingFields(req.body, ['nombre', 'dni', 'password']);
@@ -40,7 +43,8 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.post('/alumnos', async (req, res) => {
+// Las siguientes rutas requieren rol GESTOR
+router.post('/alumnos', verifyToken, requireRoles('GESTOR'), async (req, res) => {
   try {
     const faltantes = missingFields(req.body, [
       'institucion_id',
@@ -63,7 +67,7 @@ router.post('/alumnos', async (req, res) => {
   }
 });
 
-router.post('/profesores', async (req, res) => {
+router.post('/profesores', verifyToken, requireRoles('GESTOR'), async (req, res) => {
   try {
     const faltantes = missingFields(req.body, [
       'institucion_id',
@@ -85,7 +89,7 @@ router.post('/profesores', async (req, res) => {
   }
 });
 
-router.put('/alumnos/:alumnoId/curso', async (req, res) => {
+router.put('/alumnos/:alumnoId/curso', verifyToken, requireRoles('GESTOR'), async (req, res) => {
   try {
     const faltantes = missingFields(req.body, ['curso_id']);
 
@@ -108,7 +112,7 @@ router.put('/alumnos/:alumnoId/curso', async (req, res) => {
   }
 });
 
-router.post('/profesores/asignar-materia', async (req, res) => {
+router.post('/profesores/asignar-materia', verifyToken, requireRoles('GESTOR'), async (req, res) => {
   try {
     const faltantes = missingFields(req.body, [
       'profesor_id',

@@ -42,6 +42,13 @@ export const conflict = (res, message = 'Conflicto con datos existentes') => {
   });
 };
 
+export const forbidden = (res, message = 'No tenés permiso para realizar esta acción') => {
+  return res.status(403).json({
+    ok: false,
+    message
+  });
+};
+
 export const serverError = (res, error) => {
   console.error(error);
 

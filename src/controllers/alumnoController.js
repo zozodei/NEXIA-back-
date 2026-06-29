@@ -1,11 +1,14 @@
 import { Router } from 'express';
 import AlumnoService from '../services/alumnoService.js';
-import { ok, notFound, serverError } from '../helpers/responseHelper.js';
+import { ok, notFound, forbidden, serverError } from '../helpers/responseHelper.js';
+import { verifyToken } from '../middleware/authMiddleware.js';
+import { requireRoles } from '../middleware/rolesMiddleware.js';
 
 const router = Router();
 const service = new AlumnoService();
 
-router.get('/', async (req, res) => {
+// Solo GESTOR y DIRECTIVO pueden listar todos los alumnos
+router.get('/', verifyToken, requireRoles('GESTOR', 'DIRECTIVO'), async (req, res) => {
   try {
     const data = await service.getAllAsync(req.query.institucion_id);
     return ok(res, data);
@@ -14,8 +17,19 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.get('/:id', async (req, res) => {
+// GESTOR y DIRECTIVO pueden ver cualquier alumno; ALUMNO solo puede verse a sí mismo
+router.get('/:id', verifyToken, async (req, res) => {
   try {
+    const { rol, alumno_id } = req.user;
+
+    if (rol === 'ALUMNO' && String(alumno_id) !== req.params.id) {
+      return forbidden(res, 'Solo podés ver tu propio perfil');
+    }
+
+    if (!['GESTOR', 'DIRECTIVO', 'ALUMNO'].includes(rol)) {
+      return forbidden(res, 'No tenés permiso para realizar esta acción');
+    }
+
     const data = await service.getByIdAsync(req.params.id);
 
     if (!data) {
@@ -28,8 +42,19 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.get('/:id/materias', async (req, res) => {
+// GESTOR, DIRECTIVO, o el propio ALUMNO
+router.get('/:id/materias', verifyToken, async (req, res) => {
   try {
+    const { rol, alumno_id } = req.user;
+
+    if (rol === 'ALUMNO' && String(alumno_id) !== req.params.id) {
+      return forbidden(res, 'Solo podés ver tus propias materias');
+    }
+
+    if (!['GESTOR', 'DIRECTIVO', 'ALUMNO'].includes(rol)) {
+      return forbidden(res, 'No tenés permiso para realizar esta acción');
+    }
+
     const data = await service.getMateriasConContenidosAsync(req.params.id);
     return ok(res, data);
   } catch (error) {
@@ -37,8 +62,19 @@ router.get('/:id/materias', async (req, res) => {
   }
 });
 
-router.get('/:id/contenidos', async (req, res) => {
+// GESTOR, DIRECTIVO, o el propio ALUMNO
+router.get('/:id/contenidos', verifyToken, async (req, res) => {
   try {
+    const { rol, alumno_id } = req.user;
+
+    if (rol === 'ALUMNO' && String(alumno_id) !== req.params.id) {
+      return forbidden(res, 'Solo podés ver tus propios contenidos');
+    }
+
+    if (!['GESTOR', 'DIRECTIVO', 'ALUMNO'].includes(rol)) {
+      return forbidden(res, 'No tenés permiso para realizar esta acción');
+    }
+
     const data = await service.getContenidosAsync(
       req.params.id,
       req.query.materia_id

@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs';
 import pool from '../database/db.js';
 
 export default class GestorRepository {
@@ -7,11 +8,13 @@ export default class GestorRepository {
     try {
       await client.query('BEGIN');
 
+      const hashed = await bcrypt.hash(password, 10);
+
       const gestorResult = await client.query(`
         INSERT INTO gestor (nombre, dni, password)
         VALUES ($1, $2, $3)
         RETURNING id, nombre, dni
-      `, [nombre, dni, password]);
+      `, [nombre, dni, hashed]);
 
       const gestor = gestorResult.rows[0];
 
@@ -48,6 +51,8 @@ export default class GestorRepository {
     try {
       await client.query('BEGIN');
 
+      const hashed = await bcrypt.hash(password, 10);
+
       const usuarioResult = await client.query(`
         INSERT INTO usuario (
           institucion_id,
@@ -61,7 +66,7 @@ export default class GestorRepository {
         )
         VALUES ($1, $2, $3, $4, $5, $6, 'ALUMNO', true)
         RETURNING id, institucion_id, nombre, apellido, email, dni, rol, activo
-      `, [institucion_id, nombre, apellido, email, password, dni]);
+      `, [institucion_id, nombre, apellido, email, hashed, dni]);
 
       const usuario = usuarioResult.rows[0];
 
@@ -98,6 +103,8 @@ export default class GestorRepository {
     try {
       await client.query('BEGIN');
 
+      const hashed = await bcrypt.hash(password, 10);
+
       const usuarioResult = await client.query(`
         INSERT INTO usuario (
           institucion_id,
@@ -111,7 +118,7 @@ export default class GestorRepository {
         )
         VALUES ($1, $2, $3, $4, $5, $6, 'PROFESOR', true)
         RETURNING id, institucion_id, nombre, apellido, email, dni, rol, activo
-      `, [institucion_id, nombre, apellido, email, password, dni]);
+      `, [institucion_id, nombre, apellido, email, hashed, dni]);
 
       const usuario = usuarioResult.rows[0];
 
